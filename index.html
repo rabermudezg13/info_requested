@@ -1,1 +1,183 @@
-index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info Request Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Material Design Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loadingIndicator" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="mdi mdi-folder-information"></i>
+                <h2>Info Requests</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <button onclick="showForm()" class="nav-btn">
+                    <i class="mdi mdi-plus-circle"></i>
+                    <span>New Request</span>
+                </button>
+                <button onclick="showSearch()" class="nav-btn">
+                    <i class="mdi mdi-magnify"></i>
+                    <span>Search</span>
+                </button>
+                <button onclick="showDataframe()" class="nav-btn">
+                    <i class="mdi mdi-view-grid"></i>
+                    <span>View All</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Form Section -->
+            <div id="formSection" class="content-section">
+                <div class="section-header">
+                    <h2><i class="mdi mdi-plus-circle"></i> New Info Request</h2>
+                </div>
+                <div class="card">
+                    <form id="infoRequestForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id">ID</label>
+                                <input type="text" id="id" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="infoRequestDate">Info Request Date</label>
+                                <input type="date" id="infoRequestDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" required>
+                                    <option value="Info Request Sent">Info Request Sent</option>
+                                    <option value="Docs Submitted">Docs Submitted</option>
+                                    <option value="Review">Review</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <i class="mdi mdi-check"></i> Add Info Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Search Section -->
+            <div id="searchSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="mdi mdi-magnify"></i> Search Info Requests</h2>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name or ID...">
+                    <button onclick="searchRequests()" class="search-btn">
+                        <i class="mdi mdi-magnify"></i>
+                    </button>
+                </div>
+                <div id="results" class="results-grid"></div>
+            </div>
+
+            <!-- Table Section -->
+            <div id="dataframeSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="mdi mdi-view-grid"></i> All Info Requests</h2>
+                </div>
+                <div class="card table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>ID</th>
+                                <th>Info Request Date</th>
+                                <th>Days Passed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataframeBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="mdi mdi-pencil"></i> Edit Info Request</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editName">Name</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editIdNumber">ID</label>
+                        <input type="text" id="editIdNumber" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editInfoRequestDate">Info Request Date</label>
+                        <input type="date" id="editInfoRequestDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus" required>
+                            <option value="Info Request Sent">Info Request Sent</option>
+                            <option value="Docs Submitted">Docs Submitted</option>
+                            <option value="Review">Review</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="mdi mdi-content-save"></i> Update Info Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgLkRVvSiCWeMskblrLLnxROFzy9vnLoE",
+            authDomain: "invitations-9ccbe.firebaseapp.com",
+            projectId: "invitations-9ccbe",
+            storageBucket: "invitations-9ccbe.firebasestorage.app",
+            messagingSenderId: "761646780224",
+            appId: "1:761646780224:web:91b5b02531664af11a34a5",
+            measurementId: "G-ZK13E469KS"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
