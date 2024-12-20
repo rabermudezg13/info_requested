@@ -47,8 +47,8 @@ function getStatusBadgeClass(status) {
     }
 }
 
+// Form submission
 document.addEventListener('DOMContentLoaded', function() {
-    // Form submission
     const infoRequestForm = document.getElementById('infoRequestForm');
     
     infoRequestForm.addEventListener('submit', async function(e) {
@@ -61,12 +61,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: document.getElementById('id').value,
                 infoRequestDate: document.getElementById('infoRequestDate').value,
                 status: document.getElementById('status').value,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                daysPassed: calculateDaysPassed(document.getElementById('infoRequestDate').value)
             };
             
+            console.log('Saving info request:', infoRequest);
             await db.collection('infoRequests').add(infoRequest);
             
-            // Show success notification
             const notification = document.createElement('div');
             notification.className = 'notification success';
             notification.innerHTML = '<i class="mdi mdi-check-circle"></i> Info request added successfully';
@@ -77,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showDataframe();
         } catch (error) {
             console.error('Error:', error);
-            // Show error notification
             const notification = document.createElement('div');
             notification.className = 'notification error';
             notification.innerHTML = `<i class="mdi mdi-alert"></i> Error: ${error.message}`;
@@ -101,14 +101,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 id: document.getElementById('editIdNumber').value,
                 infoRequestDate: document.getElementById('editInfoRequestDate').value,
                 status: document.getElementById('editStatus').value,
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                daysPassed: calculateDaysPassed(document.getElementById('editInfoRequestDate').value)
             };
 
             await db.collection('infoRequests').doc(id).update(updatedRequest);
             closeModal();
             updateDataframe();
             
-            // Show success notification
             const notification = document.createElement('div');
             notification.className = 'notification success';
             notification.innerHTML = '<i class="mdi mdi-check-circle"></i> Info request updated successfully';
@@ -116,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => notification.remove(), 3000);
         } catch (error) {
             console.error('Error:', error);
-            // Show error notification
             const notification = document.createElement('div');
             notification.className = 'notification error';
             notification.innerHTML = `<i class="mdi mdi-alert"></i> Error: ${error.message}`;
@@ -218,4 +217,93 @@ async function editRequest(id) {
             const request = doc.data();
             
             document.getElementById('editId').value = id;
-            document.getElementById('edit
+            document.getElementById('editName').value = request.name;
+            document.getElementById('editIdNumber').value = request.id;
+            document.getElementById('editInfoRequestDate').value = request.infoRequestDate;
+            document.getElementById('editStatus').value = request.status;
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        const notification = document.createElement('div');
+        notification.className = 'notification error';
+        notification.innerHTML = `<i class="mdi mdi-alert"></i> Error loading info request data`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Delete function
+async function deleteRequest(id) {
+    if (confirm('Are you sure you want to delete this info request?')) {
+        showLoading();
+        try {
+            await db.collection('infoRequests').doc(id).delete();
+            updateDataframe();
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification success';
+            notification.innerHTML = '<i class="mdi mdi-check-circle"></i> Info request deleted successfully';
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        } catch (error) {
+            console.error('Error:', error);
+            const notification = document.createElement('div');
+            notification.className = 'notification error';
+            notification.innerHTML = `<i class="mdi mdi-alert"></i> Error: ${error.message}`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        } finally {
+            hideLoading();
+        }
+    }
+}
+
+// Update dataframe
+async function updateDataframe() {
+    showLoading();
+    try {
+        const snapshot = await db.collection('infoRequests').get();
+        const tbody = document.getElementById('dataframeBody');
+        tbody.innerHTML = '';
+
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data"><i class="mdi mdi-alert"></i> No data available</td></tr>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const request = doc.data();
+            const daysPassed = calculateDaysPassed(request.infoRequestDate);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${request.name || ''}</td>
+                <td>${request.id || ''}</td>
+                <td>${request.infoRequestDate || ''}</td>
+                <td>${daysPassed}</td>
+                <td><span class="status-badge ${getStatusBadgeClass(request.status)}">${request.status || ''}</span></td>
+                <td>
+                    <button onclick="editRequest('${doc.id}')" class="edit-btn">
+                        <i class="mdi mdi-pencil"></i>
+                    </button>
+                    <button onclick="deleteRequest('${doc.id}')" class="delete-btn">
+                        <i class="mdi mdi-delete"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        const notification = document.createElement('div');
+        notification.className = 'notification error';
+        notification.innerHTML = `<i class="mdi mdi-alert"></i> Error loading data: ${error.message}`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+    } finally {
+        hideLoading();
+    }
+}
