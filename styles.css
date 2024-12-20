@@ -185,9 +185,24 @@ input:focus, select:focus {
     flex: 1;
 }
 
+.search-btn {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Results Grid */
 .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1rem;
 }
 
@@ -195,32 +210,36 @@ input:focus, select:focus {
     background: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    overflow: hidden;
+    padding: 1rem;
 }
 
 .card-header {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem;
+}
+
+.card-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
 }
 
 .card-body {
-    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .card-body p {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
     color: var(--text-light);
 }
 
 .card-actions {
-    padding: 1rem;
-    border-top: 1px solid #e5e7eb;
     display: flex;
     gap: 0.5rem;
 }
