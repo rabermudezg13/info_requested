@@ -177,6 +177,14 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        // Verificar conexión
+        db.collection('infoRequests').get()
+            .then(() => console.log('Conexión a Firestore exitosa'))
+            .catch(error => {
+                console.error('Error de conexión:', error);
+                alert('Error de conexión a Firebase: ' + error.message);
+            });
     </script>
     <script src="script.js"></script>
 </body>
