@@ -8,9 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Material Design Icons -->
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
     <!-- Loading Spinner -->
@@ -162,8 +159,13 @@
         </div>
     </div>
 
-    <script>
-        // Firebase configuration
+    <!-- Firebase SDK Modular -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCgLkRVvSiCWeMskblrLLnxROFzy9vnLoE",
             authDomain: "invitations-9ccbe.firebaseapp.com",
@@ -175,18 +177,26 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase functions available globally
+        window.db = db;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.addDoc = addDoc;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.updateDoc = updateDoc;
 
         // Test connection
-        db.collection('infoRequests').get()
-            .then(() => {
-                console.log('Conexión a Firestore exitosa');
-            })
-            .catch(error => {
-                console.error('Error de conexión:', error);
-                alert('Error de conexión a Firebase: ' + error.message);
-            });
+        try {
+            const querySnapshot = await getDocs(collection(db, 'infoRequests'));
+            console.log('Conexión a Firestore exitosa');
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            alert('Error de conexión a Firebase: ' + error.message);
+        }
     </script>
     <script src="script.js"></script>
 </body>
